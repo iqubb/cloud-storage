@@ -1,7 +1,6 @@
 package com.qubb.cloud.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qubb.cloud.auth.UserCredentials;
 import com.qubb.cloud.user.UserRepository;
 import com.qubb.cloud.util.DataUtil;
 import org.hamcrest.CoreMatchers;
@@ -20,7 +19,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")

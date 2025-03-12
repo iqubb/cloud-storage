@@ -1,4 +1,4 @@
-package com.qubb.cloud.file;
+package com.qubb.cloud.resource;
 
 import com.qubb.cloud.exception.IncorrectPathException;
 import com.qubb.cloud.exception.ResourceNotFoundException;

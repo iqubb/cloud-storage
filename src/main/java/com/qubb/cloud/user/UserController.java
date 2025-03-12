@@ -1,6 +1,12 @@
 package com.qubb.cloud.user;
 
 import com.qubb.cloud.auth.UsernameResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +18,34 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
+@SecurityRequirement(name = "basicAuth")
+@Tag(name = "User", description = "Operations related to the current user")
 public class UserController {
 
     private final UserService userService;
 
+    @Operation(
+            summary = "Get Current User",
+            description = """
+            Retrieves information about the currently authenticated user.
+            Errors:
+              401 - User is not authenticated.
+              500 - Unknown server error.
+            """,
+            security = @SecurityRequirement(name = "basicAuth"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully retrieved user info",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = UsernameResponse.class)
+                            )
+                    ),
+                    @ApiResponse(responseCode = "401", description = "User is not authenticated"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     @GetMapping("/me")
     public ResponseEntity<UsernameResponse> getCurrentUser(
             @AuthenticationPrincipal UserDetailsImpl userDetails) {

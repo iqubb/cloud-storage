@@ -1,4 +1,4 @@
-package com.qubb.cloud.file;
+package com.qubb.cloud.resource;
 
 import lombok.Builder;
 import org.springframework.core.io.Resource;

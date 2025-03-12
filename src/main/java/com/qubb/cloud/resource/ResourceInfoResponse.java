@@ -1,4 +1,4 @@
-package com.qubb.cloud.file;
+package com.qubb.cloud.resource;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;

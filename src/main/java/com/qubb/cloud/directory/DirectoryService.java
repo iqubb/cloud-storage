@@ -1,7 +1,7 @@
 package com.qubb.cloud.directory;
 
 import com.qubb.cloud.exception.*;
-import com.qubb.cloud.file.ResourceInfoResponse;
+import com.qubb.cloud.resource.ResourceInfoResponse;
 import com.qubb.cloud.user.UserDetailsImpl;
 import io.minio.*;
 import io.minio.messages.Item;
