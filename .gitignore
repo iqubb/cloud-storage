@@ -1,0 +1,16 @@
+*.class
+
+*.log
+
+*.ctxt
+
+*.jar
+*.war
+
+hs_err_pid*
+replay_pid*
+
+.idea
+target
+compose/.env
+logs
