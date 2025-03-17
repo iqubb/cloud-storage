@@ -107,4 +107,5 @@ public class DirectoryService {
         }
         return user.user().getId();
     }
+
 }

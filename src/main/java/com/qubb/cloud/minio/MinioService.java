@@ -15,6 +15,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -36,6 +38,33 @@ public class MinioService {
         }
     }
 
+    public void removeObject(String objectName) {
+        try {
+            minioClient.removeObject(RemoveObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(objectName)
+                    .build());
+        } catch (Exception e) {
+            throw new ResourceOperationException("Failed to remove object: " + objectName, e);
+        }
+    }
+
+    public Stream<Item> recursiveListObjects(String prefix) {
+        Iterable<Result<Item>> iterable = minioClient.listObjects(ListObjectsArgs.builder()
+                .bucket(bucketName)
+                .prefix(prefix)
+                .recursive(true)
+                .build());
+        return StreamSupport.stream(iterable.spliterator(), false)
+                .map(result -> {
+                    try {
+                        return result.get();
+                    } catch (Exception e) {
+                        throw new ResourceOperationException("Failed to process MinIO item", e);
+                    }
+                });
+    }
+
     public boolean isDirectoryExists(String directoryPath) {
         if (directoryPath.isEmpty()) {
             return true;
@@ -45,6 +74,18 @@ public class MinioService {
             return checkExplicitDirectory(normalizedPath) || checkImplicitDirectory(normalizedPath);
         } catch (Exception e) {
             log.error("Directory existence check failed for path: {}", normalizedPath, e);
+            return false;
+        }
+    }
+
+    public boolean objectExists(String objectName) {
+        try {
+            minioClient.statObject(StatObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(objectName)
+                    .build());
+            return true;
+        } catch (Exception e) {
             return false;
         }
     }
@@ -64,31 +105,7 @@ public class MinioService {
     }
 
     private boolean checkExplicitDirectory(String path) {
-        try {
-            minioClient.statObject(StatObjectArgs.builder()
-                    .bucket(bucketName)
-                    .object(path)
-                    .build());
-            return true;
-        } catch (ErrorResponseException e) {
-            if ("NoSuchKey".equals(e.errorResponse().code())) {
-                return false;
-            }
-            log.error("MinIO storage error response: {}", e.getMessage());
-            throw new ResourceOperationException("Storage operation failed", e);
-        } catch (MinioException e) {
-            log.error("MinIO API error: {}", e.getMessage());
-            throw new ResourceOperationException("Storage communication failure", e);
-        } catch (IOException e) {
-            log.error("IO error during storage access: {}", e.getMessage());
-            throw new ResourceOperationException("Storage connection problem", e);
-        } catch (InvalidKeyException | NoSuchAlgorithmException e) {
-            log.error("Security configuration error: {}", e.getMessage());
-            throw new ResourceOperationException("Storage authentication failure", e);
-        } catch (Exception e) {
-            log.error("Unexpected error during directory check: {}", e.getMessage());
-            throw new ResourceOperationException("Storage operation unexpected error", e);
-        }
+        return objectExists(path);
     }
 
     private boolean checkImplicitDirectory(String path) {
