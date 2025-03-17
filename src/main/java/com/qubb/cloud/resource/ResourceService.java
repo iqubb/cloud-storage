@@ -9,6 +9,7 @@ import io.minio.*;
 import io.minio.errors.*;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ResourceService {
@@ -47,12 +49,11 @@ public class ResourceService {
 
     public void deleteResource(String path, UserDetailsImpl userDetails) {
         validateResourceRequest(path, userDetails);
-        String objectName = "user-" + userDetails.user().getId() + "-files/" + path;
         try {
             if (path.endsWith("/")) {
-                deleteDirectory(objectName);
+                deleteDirectory(path);
             } else {
-                deleteFile(objectName);
+                deleteFile(path);
             }
         } catch (Exception exception) {
             throw new ResourceNotFoundException("Failed to delete resource: " + exception.getMessage());
@@ -61,20 +62,19 @@ public class ResourceService {
 
     public DownloadResult downloadResource(String path, UserDetailsImpl userDetails) {
         validateResourceRequest(path, userDetails);
-        String objectPath = "user-" + userDetails.user().getId() + "-files/" + path;
         if (path.endsWith("/")) {
-            return downloadDirectory(objectPath);
+            return downloadDirectory(path);
         } else {
-            return downloadFile(objectPath);
+            return downloadFile(path);
         }
     }
 
     public ResourceInfoResponse moveResource(String from, String to, UserDetailsImpl userDetails) {
         validateResourceRequest(from, userDetails);
         validateResourceRequest(to, userDetails);
-        String basePrefix = "user-" + userDetails.user().getId() + "-files/";
-        String sourceObject = basePrefix + from;
-        String targetObject = basePrefix + to;
+        //String basePrefix = "user-" + userDetails.user().getId() + "-files/";
+        String sourceObject = from;
+        String targetObject = to;
 
         checkSourceExists(sourceObject);
         checkTargetParentExists(targetObject);
@@ -220,7 +220,8 @@ public class ResourceService {
             zipOut.finish();
             byte[] zipBytes = zipStream.toByteArray();
 
-            String zipName = directoryPath.replaceAll("/$", "") + ".zip";
+            //String zipName = directoryPath.replaceAll("/$", "") + ".zip";
+            String zipName = directoryPath.substring(directoryPath.lastIndexOf('/') + 1);
             return new DownloadResult(
                     new ByteArrayResource(zipBytes),
                     MediaType.parseMediaType("application/zip"),
@@ -278,12 +279,13 @@ public class ResourceService {
     }
 
     private void validateResourceRequest(String path, UserDetailsImpl userDetails) {
-        if (path == null || path.trim().isEmpty()) {
-            throw new IncorrectPathException("Incorrect path");
-        }
+
         var user = userDetails.user();
         if (user == null) {
             throw new UserNotFoundException("User not found");
+        }
+        if (path == null || path.isEmpty()) {
+            return;
         }
         String allowedCharacters = "^[a-zA-Z0-9\\-._!*'()/ @$=:+;,]+$";
 
@@ -307,12 +309,16 @@ public class ResourceService {
     }
 
     private String getParentPath(String resourcePath) {
-        if (resourcePath.endsWith("/")) {
-            // Для папки: "folder1/folder2/" -> "folder1/"
-            return resourcePath.substring(0, resourcePath.lastIndexOf("/", resourcePath.length() - 2) + 1);
+        if (resourcePath.isEmpty()) {
+            return "";
         }
-        // Для файла: "folder1/folder2/file.txt" -> "folder1/folder2/"
-        return resourcePath.substring(0, resourcePath.lastIndexOf("/") + 1);
+        if (resourcePath.endsWith("/")) {
+            int lastSlashIndex = resourcePath.lastIndexOf('/', resourcePath.length() - 2);
+            return lastSlashIndex == -1 ? "" : resourcePath.substring(0, lastSlashIndex + 1);
+        } else {
+            int lastSlashIndex = resourcePath.lastIndexOf('/');
+            return lastSlashIndex == -1 ? "" : resourcePath.substring(0, lastSlashIndex + 1);
+        }
     }
 
     private boolean isMatch(String path, String query) {
@@ -439,20 +445,29 @@ public class ResourceService {
         }
     }
 
-    private void isDirectoryExists(String directoryPath) {
+    private boolean isDirectoryExists(String directoryPath) {
         try {
-            Iterable<Result<Item>> results = minioClient.listObjects(
-                    ListObjectsArgs.builder()
-                            .bucket(bucketName)
-                            .prefix(directoryPath)
-                            .maxKeys(1)
-                            .build());
-
-            if (!results.iterator().hasNext()) {
-                throw new ResourceNotFoundException("Directory not found: " + directoryPath);
+            if (directoryPath.isEmpty()) {
+                return true;
+            }
+            try {
+                minioClient.statObject(StatObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(directoryPath)
+                        .build());
+                return true;
+            } catch (Exception exception) {
+                Iterable<Result<Item>> results = minioClient.listObjects(
+                        ListObjectsArgs.builder()
+                                .bucket(bucketName)
+                                .prefix(directoryPath.endsWith("/") ? directoryPath : directoryPath + "/")
+                                .maxKeys(1)
+                                .build());
+                return results.iterator().hasNext();
             }
         } catch (Exception exception) {
-            throw new ResourceNotFoundException(exception.getMessage());
+            log.error("Error checking directory existence: {}", directoryPath, exception);
+            return false;
         }
     }
 

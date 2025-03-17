@@ -6,6 +6,7 @@ import com.qubb.cloud.exception.UsernameAlreadyTakenException;
 import com.qubb.cloud.user.User;
 import com.qubb.cloud.user.UserDetailsImpl;
 import com.qubb.cloud.user.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 
 @Service
 @RequiredArgsConstructor
@@ -23,8 +25,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public UsernameResponse register(UserCredentials request) {
-        var isUserAlreadyRegistered = userRepository.findByUsername(request.username()).isPresent();
-        if (isUserAlreadyRegistered) {
+        if (userRepository.findByUsername(request.username()).isPresent()) {
             throw new UsernameAlreadyTakenException("User " + request.username() + " already registered");
         }
         var user = User.builder()
@@ -32,13 +33,12 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.password()))
                 .build();
         userRepository.save(user);
-
         return UsernameResponse.builder()
                 .username(user.getUsername())
                 .build();
     }
 
-    public UsernameResponse authenticate(UserCredentials request) {
+    public UsernameResponse authenticate(UserCredentials request, HttpServletRequest httpRequest) {
         try {
             var authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -46,7 +46,10 @@ public class AuthService {
                             request.password()
                     )
             );
+            HttpSession session = httpRequest.getSession(true); // Создаём сессию явно
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext()); // Явное сохранение контекста
+
         } catch (Exception exception) {
             throw new InvalidUserCredentialsException(exception.getMessage());
         }
@@ -64,6 +67,5 @@ public class AuthService {
             session.invalidate();
         }
         SecurityContextHolder.clearContext();
-        userRepository.delete(user);
     }
 }

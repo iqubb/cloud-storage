@@ -1,11 +1,12 @@
 services:
+
   postgres:
     container_name: postgres_db
     image: postgres:latest
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: user_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - user_data:/var/lib/postgresql/data
     ports:
@@ -18,10 +19,10 @@ services:
     image: minio/minio:latest
     container_name: minio
     environment:
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: password
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: password
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - files_storage:/data
     ports:
@@ -36,7 +37,7 @@ services:
     container_name: redis_cache
     image: redis:alpine
     environment:
-      REDIS_PASSWORD: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     ports:

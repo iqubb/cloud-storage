@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
-@SecurityRequirement(name = "basicAuth")
+@SecurityRequirement(name = "sessionCookie")
 @Tag(name = "User", description = "Operations related to the current user")
 public class UserController {
 
@@ -32,7 +32,7 @@ public class UserController {
               401 - User is not authenticated.
               500 - Unknown server error.
             """,
-            security = @SecurityRequirement(name = "basicAuth"),
+            security = @SecurityRequirement(name = "sessionCookie"),
             responses = {
                     @ApiResponse(
                             responseCode = "200",

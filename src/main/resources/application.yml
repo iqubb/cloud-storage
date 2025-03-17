@@ -1,21 +1,23 @@
 spring:
-
-  session:
-    timeout: 1800
-    redis:
-      flush-mode: on_save
-      namespace: cloud:sessions
+  mvc:
+    static-path-pattern: /**
 
   data:
     redis:
-      host: redis
-      port: 6379
-      password: redis
+      host: ${REDIS_HOST:redis_cache}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:redis}
+
+  session:
+    timeout: 3600
+    redis:
+      namespace: cloud:sessions
+      flush-mode: immediate
 
   datasource:
-    url: jdbc:postgresql://postgres:5432/user_db
-    username: postgres
-    password: postgres
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/user_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:postgres}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -33,10 +35,16 @@ spring:
 
 minio:
   endpoint: http://localhost:9000
-  access-key: minio
-  secret-key: password
+  access-key: ${MINIO_ACCESS_KEY:minio}
+  secret-key: ${MINIO_SECRET_KEY:password}
   bucket: user-files
 
 server:
   port: 8080
   address: 0.0.0.0
+
+logging:
+  level:
+    org.springframework.security: DEBUG  # Логи Spring Security
+    org.springframework.web: DEBUG       # Логи HTTP-запросов
+    com.qubb.cloud: DEBUG                # Логи вашего приложения (опционально)

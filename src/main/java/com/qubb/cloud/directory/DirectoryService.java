@@ -4,6 +4,7 @@ import com.qubb.cloud.exception.*;
 import com.qubb.cloud.resource.ResourceInfoResponse;
 import com.qubb.cloud.user.UserDetailsImpl;
 import io.minio.*;
+import io.minio.errors.MinioException;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,28 +29,65 @@ public class DirectoryService {
     private String bucketName;
 
     public List<ResourceInfoResponse> getDirectoryContentInfo(String path, UserDetailsImpl userDetails) {
+        initBucket();
+        ensureUserRootDirectoryExists(userDetails);
+
         validateResourceRequest(path, userDetails);
         String prefix = "user-" + userDetails.user().getId() + "-files/";
         String fullPath = prefix + path;
-        isDirectoryExists(fullPath);
+
+        if (!isDirectoryExists(fullPath)) {
+            throw new ResourceNotFoundException("Directory not found: " + fullPath);
+        }
+
         return getContent(fullPath);
     }
+
+    private void ensureUserRootDirectoryExists(UserDetailsImpl userDetails) {
+        String userRootPath = "user-" + userDetails.user().getId() + "-files/";
+        if (!isDirectoryExists(userRootPath)) {
+            createEmptyFolder("", userDetails);
+        }
+    }
+
+    private void initBucket() {
+        try {
+            boolean exists = minioClient.bucketExists(BucketExistsArgs.builder()
+                    .bucket(bucketName)
+                    .build());
+            if (!exists) {
+                synchronized (this) {
+                minioClient.makeBucket(MakeBucketArgs.builder()
+                        .bucket(bucketName)
+                        .build());
+                    }
+                System.out.println("Корзина создана: " + bucketName);
+            } else {
+                System.out.println("Корзина уже существует: " + bucketName);
+            }
+        } catch (MinioException e) {
+            throw new RuntimeException("Ошибка при инициализации корзины: " + bucketName, e);
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при инициализации корзины", e);
+        }
+    }
+
 
     public ResourceInfoResponse createEmptyFolder(String path, UserDetailsImpl userDetails) {
         validateResourceRequest(path, userDetails);
 
-        // Нормализация пути
-        String normalizedPath = path.endsWith("/") ? path : path + "/";
+        String normalizedPath = path.isEmpty() ? "" : (path.endsWith("/") ? path : path + "/");
         String defaultPrefix = "user-" + userDetails.user().getId() + "-files/";
         String fullPath = defaultPrefix + normalizedPath;
 
         String parentPath = getParentPath(fullPath);
-        boolean isParentDirectoryExists = isDirectoryExists(parentPath);
-        boolean isNewEmptyDirectoryExists = isDirectoryExists(fullPath);
-        if(isNewEmptyDirectoryExists) {
-            throw new DirectoryAlreadyExistsException("Directory already exists");
+        if (!parentPath.isEmpty() && !isDirectoryExists(parentPath)) {
+            throw new ResourceNotFoundException("Parent directory does not exist");
         }
 
+        if (isDirectoryExists(fullPath)) {
+            throw new DirectoryAlreadyExistsException("Directory already exists");
+        }
 
         try (InputStream stream = new ByteArrayInputStream(new byte[0])) {
             minioClient.putObject(
@@ -74,21 +112,23 @@ public class DirectoryService {
     }
 
     private void validateResourceRequest(String path, UserDetailsImpl userDetails) {
-        if (path == null || path.trim().isEmpty()) {
-            throw new IncorrectPathException("Path cannot be empty");
-        }
+
         if (userDetails == null || userDetails.user() == null) {
             throw new UserNotFoundException("User not found");
         }
     }
 
     private String getParentPath(String resourcePath) {
-        if (resourcePath.endsWith("/")) {
-            // Для папки: "folder1/folder2/" -> "folder1/"
-            return resourcePath.substring(0, resourcePath.lastIndexOf("/", resourcePath.length() - 2) + 1);
+        if (resourcePath.isEmpty()) {
+            return "";
         }
-        // Для файла: "folder1/folder2/file.txt" -> "folder1/folder2/"
-        return resourcePath.substring(0, resourcePath.lastIndexOf("/") + 1);
+        if (resourcePath.endsWith("/")) {
+            int lastSlashIndex = resourcePath.lastIndexOf('/', resourcePath.length() - 2);
+            return lastSlashIndex == -1 ? "" : resourcePath.substring(0, lastSlashIndex + 1);
+        } else {
+            int lastSlashIndex = resourcePath.lastIndexOf('/');
+            return lastSlashIndex == -1 ? "" : resourcePath.substring(0, lastSlashIndex + 1);
+        }
     }
 
     private String getResourceName(String resourcePath) {
@@ -103,19 +143,28 @@ public class DirectoryService {
 
     private boolean isDirectoryExists(String directoryPath) {
         try {
-            Iterable<Result<Item>> results = minioClient.listObjects(
-                    ListObjectsArgs.builder()
-                            .bucket(bucketName)
-                            .prefix(directoryPath)
-                            .maxKeys(1)
-                            .build());
-
-            if (!results.iterator().hasNext()) {
-                throw new ResourceNotFoundException("Directory not found: " + directoryPath);
+            if (directoryPath.isEmpty()) {
+                return true;
             }
-            return true;
-        } catch (Exception exception) {
-            throw new ResourceNotFoundException(exception.getMessage());
+
+            try {
+                minioClient.statObject(StatObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(directoryPath)
+                        .build());
+                return true;
+            } catch (Exception e) {
+                Iterable<Result<Item>> results = minioClient.listObjects(
+                        ListObjectsArgs.builder()
+                                .bucket(bucketName)
+                                .prefix(directoryPath.endsWith("/") ? directoryPath : directoryPath + "/")
+                                .maxKeys(1)
+                                .build());
+                return results.iterator().hasNext();
+            }
+        } catch (Exception e) {
+            log.error("Error checking directory existence: {}", directoryPath, e);
+            return false;
         }
     }
 

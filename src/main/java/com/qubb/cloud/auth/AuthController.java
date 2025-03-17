@@ -81,9 +81,9 @@ public class AuthController {
     )
     @PostMapping("/sign-in")
     public ResponseEntity<UsernameResponse> authenticate(
-            @Valid @RequestBody UserCredentials request) {
+            @Valid @RequestBody UserCredentials request, HttpServletRequest httpRequest) {
 
-        var response = authService.authenticate(request);
+        var response = authService.authenticate(request, httpRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -102,7 +102,7 @@ public class AuthController {
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
-    @SecurityRequirement(name = "basicAuth")
+    @SecurityRequirement(name = "sessionCookie")
     @PostMapping("/sign-out")
     public ResponseEntity<?> logout(
             @AuthenticationPrincipal UserDetailsImpl userDetails,

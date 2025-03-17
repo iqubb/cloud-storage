@@ -15,11 +15,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@SecurityRequirement(name = "basicAuth")
+@SecurityRequirement(name = "sessionCookie")
 @Tag(name = "Directory", description = "Operations for managing directories")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/resource/directory")
+@RequestMapping("/api/directory")
 public class DirectoryController {
 
     private final DirectoryService directoryService;

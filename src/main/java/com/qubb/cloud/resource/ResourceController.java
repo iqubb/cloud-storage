@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/resource")
 @PreAuthorize("isAuthenticated()")
-@SecurityRequirement(name = "basicAuth")
+@SecurityRequirement(name = "sessionCookie")
 @Tag(name = "Resource", description = "Operations for managing resources")
 public class ResourceController {
 
@@ -201,7 +201,7 @@ public class ResourceController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<ResourceInfoResponse>> uploadResources(
             @RequestParam("path") String targetPath,
-            @RequestParam("files") MultipartFile[] files,
+            @RequestParam("object") MultipartFile[] files,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         var response = resourceService.uploadResources(targetPath, files, userDetails);
