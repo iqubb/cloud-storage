@@ -1,40 +1,30 @@
 package com.qubb.cloud.resource;
 
-import com.qubb.cloud.exceptions.IncorrectPathException;
 import com.qubb.cloud.exceptions.ResourceNotFoundException;
 import com.qubb.cloud.exceptions.ResourceOperationException;
 import com.qubb.cloud.exceptions.UserNotFoundException;
 import com.qubb.cloud.minio.DeleteService;
+import com.qubb.cloud.minio.DownloadService;
 import com.qubb.cloud.minio.MinioService;
 import com.qubb.cloud.user.UserDetailsImpl;
 import com.qubb.cloud.utils.PathUtils;
 import com.qubb.cloud.utils.RequestValidator;
-import com.qubb.cloud.utils.ResourceValidator;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @Slf4j
 @Service
@@ -45,6 +35,7 @@ public class ResourceService {
     private final RequestValidator requestValidator;
     private final MinioService minioService;
     private final DeleteService deleteService;
+    private final DownloadService downloadService;
 
     @Value("${minio.bucket}")
     private String bucketName;
@@ -82,9 +73,9 @@ public class ResourceService {
     public DownloadResult downloadResource(String path, UserDetailsImpl userDetails) {
         requestValidator.validateUserAndPath(userDetails, path);
         if (path.endsWith("/")) {
-            return downloadDirectory(path);
+            return downloadService.downloadDirectory(path);
         } else {
-            return downloadFile(path);
+            return downloadService.downloadFile(path);
         }
     }
 
@@ -215,41 +206,41 @@ public class ResourceService {
         }
     }
 
-    private DownloadResult downloadDirectory(String directoryPath) {
-        try {
-            ByteArrayOutputStream zipStream = new ByteArrayOutputStream();
-            ZipOutputStream zipOut = new ZipOutputStream(zipStream);
-
-            getListOfItems(directoryPath).forEach(item -> {
-                try (InputStream is = minioClient.getObject(
-                        GetObjectArgs.builder()
-                                .bucket(bucketName)
-                                .object(item.objectName())
-                                .build())) {
-
-                    String entryName = item.objectName().substring(directoryPath.length());
-                    zipOut.putNextEntry(new ZipEntry(entryName));
-                    IOUtils.copy(is, zipOut);
-                    zipOut.closeEntry();
-                } catch (Exception exception) {
-                    throw new ResourceOperationException("Error processing file: " + exception.getMessage());
-                }
-            });
-
-            zipOut.finish();
-            byte[] zipBytes = zipStream.toByteArray();
-
-            //String zipName = directoryPath.replaceAll("/$", "") + ".zip";
-            String zipName = directoryPath.substring(directoryPath.lastIndexOf('/') + 1);
-            return new DownloadResult(
-                    new ByteArrayResource(zipBytes),
-                    MediaType.parseMediaType("application/zip"),
-                    zipName
-            );
-        } catch (Exception exception) {
-            throw new ResourceOperationException("Directory download failed: " + exception.getMessage());
-        }
-    }
+//    private DownloadResult downloadDirectory(String directoryPath) {
+//        try {
+//            ByteArrayOutputStream zipStream = new ByteArrayOutputStream();
+//            ZipOutputStream zipOut = new ZipOutputStream(zipStream);
+//
+//            getListOfItems(directoryPath).forEach(item -> {
+//                try (InputStream is = minioClient.getObject(
+//                        GetObjectArgs.builder()
+//                                .bucket(bucketName)
+//                                .object(item.objectName())
+//                                .build())) {
+//
+//                    String entryName = item.objectName().substring(directoryPath.length());
+//                    zipOut.putNextEntry(new ZipEntry(entryName));
+//                    IOUtils.copy(is, zipOut);
+//                    zipOut.closeEntry();
+//                } catch (Exception exception) {
+//                    throw new ResourceOperationException("Error processing file: " + exception.getMessage());
+//                }
+//            });
+//
+//            zipOut.finish();
+//            byte[] zipBytes = zipStream.toByteArray();
+//
+//            //String zipName = directoryPath.replaceAll("/$", "") + ".zip";
+//            String zipName = directoryPath.substring(directoryPath.lastIndexOf('/') + 1);
+//            return new DownloadResult(
+//                    new ByteArrayResource(zipBytes),
+//                    MediaType.parseMediaType("application/zip"),
+//                    zipName
+//            );
+//        } catch (Exception exception) {
+//            throw new ResourceOperationException("Directory download failed: " + exception.getMessage());
+//        }
+//    }
 
     private DownloadResult downloadFile(String objectName) {
         try {

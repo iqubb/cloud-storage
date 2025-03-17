@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.stream.Stream;
@@ -35,6 +36,18 @@ public class MinioService {
             }
         } catch (Exception e) {
             throw new ResourceOperationException("Bucket initialization failed");
+        }
+    }
+
+    public InputStream getObject(String objectName) {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .build());
+        } catch (Exception e) {
+            throw new ResourceOperationException("Failed to get object: " + objectName, e);
         }
     }
 
