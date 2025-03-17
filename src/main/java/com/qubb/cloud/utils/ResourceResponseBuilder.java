@@ -28,6 +28,7 @@ public class ResourceResponseBuilder {
                 : buildFile(fullPath, prefix, entryName, size);
     }
 
+
     public static ResourceInfoResponse buildDirectoryResponse(String objectName) {
         return ResourceInfoResponse.builder()
                 .path(PathUtils.getParentPath(objectName))
@@ -35,6 +36,17 @@ public class ResourceResponseBuilder {
                 .type(DIRECTORY_TYPE)
                 .build();
     }
+
+    public static ResourceInfoResponse buildFileResponse(String objectName, Long size) {
+        return ResourceInfoResponse.builder()
+                .path(PathUtils.getParentPath(objectName))
+                .name(PathUtils.getResourceName(objectName))
+                .size(size)
+                .type(FILE_TYPE)
+                .build();
+    }
+
+
 
     private static ResourceInfoResponse buildFile(String objectName,
                                                   String basePath,

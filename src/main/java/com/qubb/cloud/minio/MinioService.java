@@ -51,6 +51,44 @@ public class MinioService {
         }
     }
 
+    public void copyObject(String source, String target) {
+        try {
+            minioClient.copyObject(
+                    CopyObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(target)
+                            .source(CopySource.builder()
+                                    .bucket(bucketName)
+                                    .object(source)
+                                    .build())
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new ResourceOperationException("Copy failed from " + source + " to " + target, e);
+        }
+    }
+
+    public void copyResource(String source, String target) {
+        recursiveListObjects(source)
+                .forEach(item -> {
+                    String sourceKey = item.objectName();
+                    String targetKey = target + sourceKey.substring(source.length());
+                    copyObject(sourceKey, targetKey);
+                });
+    }
+
+    public StatObjectResponse statObject(String objectName) {
+        try {
+            return minioClient.statObject(
+                    StatObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .build());
+        } catch (Exception e) {
+            throw new ResourceOperationException("Failed to stat object: " + objectName, e);
+        }
+    }
+
     public void removeObject(String objectName) {
         try {
             minioClient.removeObject(RemoveObjectArgs.builder()
@@ -76,6 +114,10 @@ public class MinioService {
                         throw new ResourceOperationException("Failed to process MinIO item", e);
                     }
                 });
+    }
+
+    public boolean isDirectory(String objectName) {
+        return objectName.endsWith("/") || checkImplicitDirectory(objectName);
     }
 
     public boolean isDirectoryExists(String directoryPath) {
