@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -33,9 +34,6 @@ public class DirectoryService {
 
     @Value("${minio.bucket}")
     private String bucketName;
-    private static final String DIRECTORY_TYPE = "DIRECTORY";
-    private static final String FILE_TYPE = "FILE";
-
 
     public List<ResourceInfoResponse> getDirectoryContentInfo(String path, UserDetailsImpl userDetails) {
         requestValidator.validateUserAndPath(userDetails, path);
@@ -53,40 +51,19 @@ public class DirectoryService {
     public ResourceInfoResponse createEmptyFolder(String path, UserDetailsImpl userDetails) {
         requestValidator.validateUserAndPath(userDetails, path);
 
-        String normalizedPath = path.isEmpty() ? "" : (path.endsWith("/") ? path : path + "/");
-        String defaultPrefix = "user-" + userDetails.user().getId() + "-files/";
-        String fullPath = defaultPrefix + normalizedPath;
-
+        String fullPath = PathUtils.normalize(PathUtils.buildFullUserPath(getUserId(userDetails), path));
         String parentPath = PathUtils.getParentPath(fullPath);
+
         if (!parentPath.isEmpty() && !minioService.isDirectoryExists(parentPath)) {
             throw new ResourceNotFoundException("Parent directory does not exist");
-        }
-
-        if (minioService.isDirectoryExists(fullPath)) {
+        } else if (minioService.isDirectoryExists(fullPath)) {
             throw new DirectoryAlreadyExistsException("Directory already exists");
         }
 
-        try (InputStream stream = new ByteArrayInputStream(new byte[0])) {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(fullPath)
-                            .stream(stream, 0, -1)
-                            .contentType("application/x-directory")
-                            .build()
-            );
-        } catch (Exception e) {
-            log.error("Failed to create folder: {}", fullPath, e);
-            throw new RuntimeException("Failed to create folder", e);
-        }
-
-        return new ResourceInfoResponse(
-                parentPath,
-                PathUtils.getResourceName(fullPath),
-                null,
-                "DIRECTORY"
-        );
+        minioService.createDirectoryObject(fullPath);
+        return ResourceResponseBuilder.buildDirectoryResponse(fullPath);
     }
+
 
     private List<ResourceInfoResponse> listDirectoryContents(String directoryPath) {
         try {
@@ -123,13 +100,11 @@ public class DirectoryService {
             minioService.createDirectoryObject(userRootPath);
         }
     }
+
     private int getUserId(UserDetailsImpl user) {
         if (user == null || user.user() == null) {
             throw new UserNotFoundException("User not authenticated");
         }
         return user.user().getId();
     }
-
-
-
 }

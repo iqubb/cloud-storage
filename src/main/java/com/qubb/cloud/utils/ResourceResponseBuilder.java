@@ -28,6 +28,14 @@ public class ResourceResponseBuilder {
                 : buildFile(fullPath, prefix, entryName, size);
     }
 
+    public static ResourceInfoResponse buildDirectoryResponse(String objectName) {
+        return ResourceInfoResponse.builder()
+                .path(PathUtils.getParentPath(objectName))
+                .name(PathUtils.getResourceName(objectName))
+                .type(DIRECTORY_TYPE)
+                .build();
+    }
+
     private static ResourceInfoResponse buildFile(String objectName,
                                                   String basePath,
                                                   String entryName,
