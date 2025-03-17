@@ -1,12 +1,10 @@
 package com.qubb.cloud.auth;
 
-import com.qubb.cloud.user.UserDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -81,10 +79,10 @@ public class AuthController {
     )
     @PostMapping("/sign-in")
     public ResponseEntity<UsernameResponse> authenticate(
-            @Valid @RequestBody UserCredentials request, HttpServletRequest httpRequest) {
+            @Valid @RequestBody UserCredentials request) {
 
-        var response = authService.authenticate(request, httpRequest);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        var response = authService.authenticate(request);
+        return ResponseEntity.ok().body(response);
     }
 
     @Operation(
@@ -104,12 +102,10 @@ public class AuthController {
     )
     @SecurityRequirement(name = "sessionCookie")
     @PostMapping("/sign-out")
-    public ResponseEntity<?> logout(
-            @AuthenticationPrincipal UserDetailsImpl userDetails,
-            HttpServletRequest request) {
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
 
         var session = request.getSession(false);
-        authService.logout(userDetails, session);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        authService.logout(session);
+        return ResponseEntity.noContent().build();
     }
 }

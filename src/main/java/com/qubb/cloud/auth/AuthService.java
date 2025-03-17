@@ -1,12 +1,9 @@
 package com.qubb.cloud.auth;
 
 import com.qubb.cloud.exception.InvalidUserCredentialsException;
-import com.qubb.cloud.exception.UserNotAuthorizedException;
 import com.qubb.cloud.exception.UsernameAlreadyTakenException;
 import com.qubb.cloud.user.User;
-import com.qubb.cloud.user.UserDetailsImpl;
 import com.qubb.cloud.user.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,7 +35,7 @@ public class AuthService {
                 .build();
     }
 
-    public UsernameResponse authenticate(UserCredentials request, HttpServletRequest httpRequest) {
+    public UsernameResponse authenticate(UserCredentials request) {
         try {
             var authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -46,24 +43,17 @@ public class AuthService {
                             request.password()
                     )
             );
-            HttpSession session = httpRequest.getSession(true); // Создаём сессию явно
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext()); // Явное сохранение контекста
-
-        } catch (Exception exception) {
-            throw new InvalidUserCredentialsException(exception.getMessage());
+        } catch (Exception e) {
+            throw new InvalidUserCredentialsException(e.getMessage());
         }
         return UsernameResponse.builder()
                 .username(request.username())
                 .build();
     }
 
-    public void logout(UserDetailsImpl userDetails, HttpSession session) {
-        var user = userDetails.user();
-        if (user == null) {
-            throw new UserNotAuthorizedException("User not authorized");
-        }
-        if (session != null) {
+    public void logout(HttpSession session) {
+        if (session != null && !session.isNew()) {
             session.invalidate();
         }
         SecurityContextHolder.clearContext();
