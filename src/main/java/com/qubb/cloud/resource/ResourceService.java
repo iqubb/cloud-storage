@@ -1,9 +1,9 @@
 package com.qubb.cloud.resource;
 
-import com.qubb.cloud.exception.IncorrectPathException;
-import com.qubb.cloud.exception.ResourceNotFoundException;
-import com.qubb.cloud.exception.ResourceOperationException;
-import com.qubb.cloud.exception.UserNotFoundException;
+import com.qubb.cloud.exceptions.IncorrectPathException;
+import com.qubb.cloud.exceptions.ResourceNotFoundException;
+import com.qubb.cloud.exceptions.ResourceOperationException;
+import com.qubb.cloud.exceptions.UserNotFoundException;
 import com.qubb.cloud.user.UserDetailsImpl;
 import io.minio.*;
 import io.minio.errors.*;

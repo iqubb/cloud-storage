@@ -1,4 +1,4 @@
-package com.qubb.cloud.exception;
+package com.qubb.cloud.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

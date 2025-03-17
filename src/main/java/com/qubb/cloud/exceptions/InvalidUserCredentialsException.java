@@ -1,4 +1,4 @@
-package com.qubb.cloud.exception;
+package com.qubb.cloud.exceptions;
 
 public class InvalidUserCredentialsException extends RuntimeException {
     public InvalidUserCredentialsException(String message) {

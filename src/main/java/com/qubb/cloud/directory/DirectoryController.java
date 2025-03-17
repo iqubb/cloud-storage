@@ -56,7 +56,7 @@ public class DirectoryController {
             }
     )
     @PostMapping
-    public ResponseEntity<?> createEmptyFolder(
+    public ResponseEntity<ResourceInfoResponse> createEmptyFolder(
             @RequestParam("path") String path,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
@@ -97,6 +97,6 @@ public class DirectoryController {
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         var response = directoryService.getDirectoryContentInfo(path, userDetails);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.ok().body(response);
     }
 }

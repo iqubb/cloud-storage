@@ -1,4 +1,4 @@
-package com.qubb.cloud.util;
+package com.qubb.cloud.utils;
 
 import com.qubb.cloud.auth.UserCredentials;
 import com.qubb.cloud.auth.UsernameResponse;

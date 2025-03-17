@@ -1,4 +1,4 @@
-package com.qubb.cloud.exception;
+package com.qubb.cloud.exceptions;
 
 public class ResourceConflictException extends RuntimeException {
     public ResourceConflictException(String message) {

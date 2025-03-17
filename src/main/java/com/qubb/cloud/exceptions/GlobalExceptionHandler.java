@@ -1,4 +1,4 @@
-package com.qubb.cloud.exception;
+package com.qubb.cloud.exceptions;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;

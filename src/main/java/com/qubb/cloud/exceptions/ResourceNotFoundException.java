@@ -1,4 +1,4 @@
-package com.qubb.cloud.exception;
+package com.qubb.cloud.exceptions;
 
 public class ResourceNotFoundException extends RuntimeException {
     public ResourceNotFoundException(String message) {

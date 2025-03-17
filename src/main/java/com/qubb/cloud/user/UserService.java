@@ -1,7 +1,7 @@
 package com.qubb.cloud.user;
 
 import com.qubb.cloud.auth.UsernameResponse;
-import com.qubb.cloud.exception.UserNotAuthorizedException;
+import com.qubb.cloud.exceptions.UserNotAuthorizedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

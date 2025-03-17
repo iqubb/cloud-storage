@@ -1,6 +1,5 @@
 package com.qubb.cloud.user;
 
-import com.qubb.cloud.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

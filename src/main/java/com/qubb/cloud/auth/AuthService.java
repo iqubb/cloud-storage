@@ -1,7 +1,7 @@
 package com.qubb.cloud.auth;
 
-import com.qubb.cloud.exception.InvalidUserCredentialsException;
-import com.qubb.cloud.exception.UsernameAlreadyTakenException;
+import com.qubb.cloud.exceptions.InvalidUserCredentialsException;
+import com.qubb.cloud.exceptions.UsernameAlreadyTakenException;
 import com.qubb.cloud.user.User;
 import com.qubb.cloud.user.UserRepository;
 import jakarta.servlet.http.HttpSession;

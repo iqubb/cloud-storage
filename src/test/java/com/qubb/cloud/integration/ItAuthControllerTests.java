@@ -2,7 +2,7 @@ package com.qubb.cloud.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qubb.cloud.user.UserRepository;
-import com.qubb.cloud.util.DataUtil;
+import com.qubb.cloud.utils.DataUtil;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
