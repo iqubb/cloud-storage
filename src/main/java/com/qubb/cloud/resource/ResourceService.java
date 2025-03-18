@@ -88,32 +88,20 @@ public class ResourceService {
         return buildResponse(targetPath);
     }
 
+    private boolean matchesSearch(String objectName, String userPrefix, String query) {
+        String relativePath = objectName.substring(userPrefix.length());
+        return relativePath.toLowerCase().contains(query.toLowerCase());
+    }
+
     public List<ResourceInfoResponse> search(String query, UserDetailsImpl userDetails) {
         requestValidator.validateUserAndPath(userDetails, query);
 
-        String prefix = "user-" + userDetails.user().getId() + "-files/";
-        try {
-            var response = new ArrayList<ResourceInfoResponse>();
-            Iterable<Result<Item>> items = minioClient.listObjects(
-                    ListObjectsArgs.builder()
-                            .bucket(bucketName)
-                            .prefix(prefix)
-                            .recursive(true)
-                            .build()
-            );
-            for (Result<Item> result : items) {
-                var item = result.get();
-                String objectName = item.objectName();
-                String relativePath = objectName.substring(prefix.length());
+        String rootPath = PathUtils.buildUserRootPath(getUserId(userDetails));
 
-                if (isMatch(relativePath, query)) {
-                    response.add(mapToResponse(objectName, item));
-                }
-            }
-            return response;
-        } catch (Exception exception) {
-            throw new ResourceOperationException("Search failed: " + exception.getMessage());
-        }
+        return minioService.recursiveListObjects(rootPath)
+                .filter(item -> matchesSearch(item.objectName(), rootPath, query))
+                .map(item -> mapToResponse(item.objectName(), item))
+                .collect(Collectors.toList());
     }
 
     public List<ResourceInfoResponse> uploadResources(String targetPath, MultipartFile[] files, UserDetailsImpl userDetails) {
@@ -155,31 +143,6 @@ public class ResourceService {
         }
     }
 
-    private List<Item> getListOfItems(String prefix) {
-        var items = new ArrayList<Item>();
-        try {
-            Iterable<Result<Item>> results = minioClient.listObjects(
-                    ListObjectsArgs.builder()
-                            .bucket(bucketName)
-                            .prefix(prefix)
-                            .recursive(true)
-                            .build());
-
-            for (Result<Item> result : results) {
-                items.add(result.get());
-            }
-        } catch (Exception exception) {
-            throw new ResourceOperationException("Error listing objects: " + exception.getMessage());
-        }
-        if (items.isEmpty()) {
-            throw new ResourceNotFoundException("Directory is empty or not found");
-        }
-        return items;
-    }
-
-    private boolean isMatch(String path, String query) {
-        return path.toLowerCase().contains(query.toLowerCase());
-    }
 
     private ResourceInfoResponse mapToResponse(String objectName, Item item) {
         boolean isDirectory = objectName.endsWith("/");
@@ -193,36 +156,6 @@ public class ResourceService {
                 .type(isDirectory ? "DIRECTORY" : "FILE")
                 .build();
     }
-
-
-//    private void copyResource(String source, String target) {
-//        try {
-//            Iterable<Result<Item>> items = minioClient.listObjects(
-//                    ListObjectsArgs.builder()
-//                            .bucket(bucketName)
-//                            .prefix(source)
-//                            .recursive(true)
-//                            .build());
-//
-//            for (Result<Item> itemResult : items) {
-//                Item item = itemResult.get();
-//                String sourceKey = item.objectName();
-//                String targetKey = target + sourceKey.substring(source.length());
-//                minioClient.copyObject(
-//                        CopyObjectArgs.builder()
-//                                .bucket(bucketName)
-//                                .object(targetKey)
-//                                .source(CopySource.builder()
-//                                        .bucket(bucketName)
-//                                        .object(sourceKey)
-//                                        .build())
-//                                .build());
-//            }
-//        } catch (Exception e) {
-//            throw new ResourceOperationException("Copy failed: " + e.getMessage());
-//        }
-//    }
-
 
     private ResourceInfoResponse buildResponse(String objectName) {
         if (minioService.isDirectory(objectName)) {
