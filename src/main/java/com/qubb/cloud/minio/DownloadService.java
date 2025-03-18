@@ -22,7 +22,15 @@ public class DownloadService {
 
     private final MinioService minioService;
 
-    public DownloadResult downloadFile(String objectName) {
+    public DownloadResult download(String objectName) {
+        if (objectName.endsWith("/")) {
+            return downloadDirectory(objectName);
+        } else {
+            return downloadFile(objectName);
+        }
+    }
+
+    private DownloadResult downloadFile(String objectName) {
         try {
             InputStream stream = minioService.getObject(objectName);
             String filename = PathUtils.getResourceName(objectName);
@@ -36,7 +44,7 @@ public class DownloadService {
         }
     }
 
-    public DownloadResult downloadDirectory(String directoryPath) {
+    private DownloadResult downloadDirectory(String directoryPath) {
         try (ByteArrayOutputStream zipStream = new ByteArrayOutputStream();
              ZipOutputStream zipOut = new ZipOutputStream(zipStream)) {
 

@@ -16,6 +16,14 @@ public class DeleteService {
 
     private final MinioService minioService;
 
+    public void delete(String objectName) {
+        if (objectName.endsWith("/")) {
+            deleteDirectory(objectName);
+        } else {
+            deleteFile(objectName);
+        }
+    }
+
     public void deleteFile(String objectName) {
         try {
             minioService.removeObject(objectName);

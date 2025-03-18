@@ -6,6 +6,7 @@ import com.qubb.cloud.exceptions.UserNotFoundException;
 import com.qubb.cloud.minio.DeleteService;
 import com.qubb.cloud.minio.DownloadService;
 import com.qubb.cloud.minio.MinioService;
+import com.qubb.cloud.minio.UploadService;
 import com.qubb.cloud.user.UserDetailsImpl;
 import com.qubb.cloud.utils.PathUtils;
 import com.qubb.cloud.utils.RequestValidator;
@@ -15,12 +16,9 @@ import io.minio.*;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,15 +27,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ResourceService {
 
-    private final MinioClient minioClient;
     private final RequestValidator requestValidator;
     private final MinioService minioService;
     private final DeleteService deleteService;
     private final DownloadService downloadService;
+    private final UploadService uploadService;
     private final ResourceValidator resourceValidator;
-
-    @Value("${minio.bucket}")
-    private String bucketName;
 
     public ResourceInfoResponse getResourceInfo(String path, UserDetailsImpl userDetails) {
         requestValidator.validateUserAndPath(userDetails, path);
@@ -58,20 +53,12 @@ public class ResourceService {
 
     public void deleteResource(String path, UserDetailsImpl userDetails) {
         requestValidator.validateUserAndPath(userDetails, path);
-        if (path.endsWith("/")) {
-            deleteService.deleteDirectory(path);
-        } else {
-            deleteService.deleteFile(path);
-        }
+        deleteService.delete(path);
     }
 
     public DownloadResult downloadResource(String path, UserDetailsImpl userDetails) {
         requestValidator.validateUserAndPath(userDetails, path);
-        if (path.endsWith("/")) {
-            return downloadService.downloadDirectory(path);
-        } else {
-            return downloadService.downloadFile(path);
-        }
+        return downloadService.download(path);
     }
 
     public ResourceInfoResponse moveResource(String from, String to, UserDetailsImpl userDetails) {
@@ -106,43 +93,11 @@ public class ResourceService {
 
     public List<ResourceInfoResponse> uploadResources(String targetPath, MultipartFile[] files, UserDetailsImpl userDetails) {
         requestValidator.validateUserAndPath(userDetails, targetPath);
-        String prefix = "user-" + userDetails.user().getId() + "-files/";
-        String fullPath = prefix + targetPath;
 
-        minioService.isDirectoryExists(fullPath);
+        String fullPath = PathUtils.buildFullUserPath(getUserId(userDetails), targetPath);
+        return uploadService.upload(files, fullPath);
 
-        return Arrays.stream(files)
-                .flatMap(file -> processFile(file, fullPath).stream())
-                .collect(Collectors.toList());
     }
-
-    private List<ResourceInfoResponse> processFile(MultipartFile file, String basePath) {
-        try {
-            String fileName = file.getOriginalFilename();
-            String objectName = basePath + fileName;
-            if (minioService.objectExists(objectName)) {
-                throw new ResourceOperationException("File already exists: " + objectName);
-            }
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .stream(file.getInputStream(), file.getSize(), -1)
-                            .contentType(file.getContentType())
-                            .build()
-            );
-            return List.of(ResourceInfoResponse.builder()
-                    .path(PathUtils.getParentPath(objectName))
-                    .name(PathUtils.getResourceName(objectName))
-                    .size(file.getSize())
-                    .type("FILE")
-                    .build()
-            );
-        } catch (Exception exception) {
-            throw new ResourceOperationException("Failed to upload file: " + exception.getMessage());
-        }
-    }
-
 
     private ResourceInfoResponse mapToResponse(String objectName, Item item) {
         boolean isDirectory = objectName.endsWith("/");

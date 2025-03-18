@@ -51,6 +51,21 @@ public class MinioService {
         }
     }
 
+    public void putObject(String objectName, InputStream stream, Long size, String contentType) {
+        try {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .stream(stream, size, -1)
+                            .contentType(contentType)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new ResourceOperationException("Failed to put object: " + objectName, e);
+        }
+    }
+
     public void copyObject(String source, String target) {
         try {
             minioClient.copyObject(
