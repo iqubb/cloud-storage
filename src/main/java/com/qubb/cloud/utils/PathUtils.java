@@ -20,6 +20,9 @@ public class PathUtils {
 
     public static String buildFullUserPath(int id, String path) {
         String root = buildUserRootPath(id);
+        if (path.contains(root)) {
+            return path;
+        }
         return root + path;
     }
 

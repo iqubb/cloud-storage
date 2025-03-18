@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,7 +42,7 @@ public class ResourceService {
         if (!resourceValidator.isSourceResourceExists(objectName)) {
             throw new ResourceNotFoundException(objectName);
         }
-        return buildResponse(objectName);
+        return ResourceResponseBuilder.buildFromObjectName(objectName, 0L);
     }
 
 
@@ -65,15 +66,16 @@ public class ResourceService {
     public ResourceInfoResponse moveResource(String from, String to, UserDetailsImpl userDetails) {
         requestValidator.validateRequest(userDetails, from, to);
 
+        from = PathUtils.buildFullUserPath(getUserId(userDetails), from);
+        to = PathUtils.buildFullUserPath(getUserId(userDetails), to);
 
-        String targetPath = PathUtils.buildFullUserPath(getUserId(userDetails), to);
         resourceValidator.isSourceResourceExists(from);
-        resourceValidator.checkTargetParentExists(targetPath);
+        resourceValidator.checkTargetParentExists(to);
 
-        minioService.copyResource(from, targetPath);
+        minioService.copyResource(from, to);
         deleteResource(from, userDetails);
 
-        return buildResponse(targetPath);
+        return ResourceResponseBuilder.buildFromObjectName(to, 0L);
     }
 
     private boolean matchesSearch(String objectName, String userPrefix, String query) {
@@ -88,7 +90,7 @@ public class ResourceService {
 
         return minioService.recursiveListObjects(rootPath)
                 .filter(item -> matchesSearch(item.objectName(), rootPath, query))
-                .map(item -> mapToResponse(item.objectName(), item))
+                .map(item -> ResourceResponseBuilder.buildFromObjectName(item.objectName(), 0L))
                 .collect(Collectors.toList());
     }
 
@@ -99,7 +101,8 @@ public class ResourceService {
         return user.user().getId();
     }
 
-    private ResourceInfoResponse mapToResponse(String objectName, Item item) {
+    private ResourceInfoResponse mapToResponse(Item item) {
+        String objectName = item.objectName();
         boolean isDirectory = objectName.endsWith("/");
         String parentPath = PathUtils.getParentPath(objectName);
         String name = PathUtils.getResourceName(objectName);
@@ -112,15 +115,15 @@ public class ResourceService {
                 .build();
     }
 
-    private ResourceInfoResponse buildResponse(String objectName) {
-        if (minioService.isDirectory(objectName)) {
-            return ResourceResponseBuilder.buildDirectoryResponse(objectName);
-        }
-        try {
-            StatObjectResponse stat = minioService.statObject(objectName);
-            return ResourceResponseBuilder.buildFileResponse(objectName, stat.size());
-        } catch (Exception e) {
-            throw new ResourceOperationException("Failed to get resource info: " + e.getMessage());
-        }
-    }
+//    private ResourceInfoResponse buildResponse(String objectName) {
+//        if (minioService.isDirectory(objectName)) {
+//            return ResourceResponseBuilder.buildDirectoryResponse(objectName);
+//        }
+//        try {
+//            StatObjectResponse stat = minioService.statObject(objectName);
+//            return ResourceResponseBuilder.buildFileResponse(objectName, stat.size());
+//        } catch (Exception e) {
+//            throw new ResourceOperationException("Failed to get resource info: " + e.getMessage());
+//        }
+//    }
 }

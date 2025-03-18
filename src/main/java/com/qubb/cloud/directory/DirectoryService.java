@@ -7,29 +7,19 @@ import com.qubb.cloud.user.UserDetailsImpl;
 import com.qubb.cloud.utils.PathUtils;
 import com.qubb.cloud.utils.RequestValidator;
 import com.qubb.cloud.utils.ResourceResponseBuilder;
-import com.qubb.cloud.utils.ResourceValidator;
-import io.minio.*;
-import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DirectoryService {
 
-    private final MinioClient minioClient;
     private final MinioService minioService;
     private final RequestValidator requestValidator;
-
-    @Value("${minio.bucket}")
-    private String bucketName;
 
     public List<ResourceInfoResponse> getDirectoryContentInfo(String path, UserDetailsImpl userDetails) {
         requestValidator.validateRequest(userDetails, path);
@@ -57,37 +47,16 @@ public class DirectoryService {
         }
 
         minioService.createDirectoryObject(fullPath);
-        return ResourceResponseBuilder.buildDirectoryResponse(fullPath);
+        return ResourceResponseBuilder.buildFromObjectName(fullPath, 0L);
     }
-
 
     private List<ResourceInfoResponse> listDirectoryContents(String directoryPath) {
-        try {
-            return StreamSupport.stream(listObjects(directoryPath).spliterator(), false)
-                    .map(this::unwrapItemResult)
-                    .filter(item -> !item.objectName().equals(directoryPath))
-                    .map(item -> ResourceResponseBuilder.buildFromItem(item, directoryPath))
-                    .distinct()
-                    .toList();
-        } catch (Exception e) {
-            throw new ResourceOperationException("Directory listing failed: " + directoryPath);
-        }
-    }
+        return minioService.listObjects(directoryPath)
+                .filter(item -> !item.objectName().equals(directoryPath))
+                .map(ResourceResponseBuilder::buildFromItem)
+                .distinct()
+                .toList();
 
-    private Stream<Result<Item>> listObjects(String prefix) {
-        return StreamSupport.stream(minioClient.listObjects(ListObjectsArgs.builder()
-                .bucket(bucketName)
-                .prefix(prefix)
-                .recursive(false)
-                .build()).spliterator(), false);
-    }
-
-    private Item unwrapItemResult(Result<Item> result) {
-        try {
-            return result.get();
-        } catch (Exception e) {
-            throw new ResourceOperationException("Failed to process MinIO item");
-        }
     }
 
     private void ensureUserRootDirectoryExists(UserDetailsImpl userDetails) {
@@ -103,5 +72,4 @@ public class DirectoryService {
         }
         return user.user().getId();
     }
-
 }

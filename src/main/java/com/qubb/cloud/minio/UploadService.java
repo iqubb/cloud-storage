@@ -36,10 +36,8 @@ public class UploadService {
 
             minioService.putObject(objectName, file.getInputStream(), file.getSize(), file.getContentType());
 
-            return List.of(ResourceResponseBuilder.buildFromParams(
-                    PathUtils.getParentPath(objectName),
-                    PathUtils.getResourceName(objectName),
-                    false,
+            return List.of(ResourceResponseBuilder.buildFromObjectName(
+                    objectName,
                     file.getSize()
             ));
         } catch (Exception e) {

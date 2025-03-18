@@ -131,6 +131,22 @@ public class MinioService {
                 });
     }
 
+    public Stream<Item> listObjects(String prefix) {
+        Iterable<Result<Item>> iterable = minioClient.listObjects(ListObjectsArgs.builder()
+                .bucket(bucketName)
+                .prefix(prefix)
+                .recursive(false)
+                .build());
+        return StreamSupport.stream(iterable.spliterator(), false)
+                .map(result -> {
+                    try {
+                        return result.get();
+                    } catch (Exception e) {
+                        throw new ResourceOperationException("Failed to process MinIO item", e);
+                    }
+                });
+    }
+
     public boolean isDirectory(String objectName) {
         return objectName.endsWith("/") || checkImplicitDirectory(objectName);
     }
