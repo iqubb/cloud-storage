@@ -35,7 +35,7 @@ public class ResourceService {
     private final ResourceValidator resourceValidator;
 
     public ResourceInfoResponse getResourceInfo(String path, UserDetailsImpl userDetails) {
-        requestValidator.validateUserAndPath(userDetails, path);
+        requestValidator.validateRequest(userDetails, path);
 
         String objectName = PathUtils.buildFullUserPath(getUserId(userDetails), path);
         if (!resourceValidator.isSourceResourceExists(objectName)) {
@@ -44,26 +44,27 @@ public class ResourceService {
         return buildResponse(objectName);
     }
 
-    private int getUserId(UserDetailsImpl user) {
-        if (user == null || user.user() == null) {
-            throw new UserNotFoundException("User not authenticated");
-        }
-        return user.user().getId();
-    }
 
     public void deleteResource(String path, UserDetailsImpl userDetails) {
-        requestValidator.validateUserAndPath(userDetails, path);
+        requestValidator.validateRequest(userDetails, path);
         deleteService.delete(path);
     }
 
     public DownloadResult downloadResource(String path, UserDetailsImpl userDetails) {
-        requestValidator.validateUserAndPath(userDetails, path);
+        requestValidator.validateRequest(userDetails, path);
         return downloadService.download(path);
     }
 
+    public List<ResourceInfoResponse> uploadResources(String targetPath, MultipartFile[] files, UserDetailsImpl userDetails) {
+        requestValidator.validateRequest(userDetails, targetPath);
+
+        String fullPath = PathUtils.buildFullUserPath(getUserId(userDetails), targetPath);
+        return uploadService.upload(files, fullPath);
+
+    }
     public ResourceInfoResponse moveResource(String from, String to, UserDetailsImpl userDetails) {
-        requestValidator.validateUserAndPath(userDetails, from);
-        requestValidator.validateUserAndPath(userDetails, to);
+        requestValidator.validateRequest(userDetails, from, to);
+
 
         String targetPath = PathUtils.buildFullUserPath(getUserId(userDetails), to);
         resourceValidator.isSourceResourceExists(from);
@@ -81,7 +82,7 @@ public class ResourceService {
     }
 
     public List<ResourceInfoResponse> search(String query, UserDetailsImpl userDetails) {
-        requestValidator.validateUserAndPath(userDetails, query);
+        requestValidator.validateRequest(userDetails, query);
 
         String rootPath = PathUtils.buildUserRootPath(getUserId(userDetails));
 
@@ -91,12 +92,11 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
-    public List<ResourceInfoResponse> uploadResources(String targetPath, MultipartFile[] files, UserDetailsImpl userDetails) {
-        requestValidator.validateUserAndPath(userDetails, targetPath);
-
-        String fullPath = PathUtils.buildFullUserPath(getUserId(userDetails), targetPath);
-        return uploadService.upload(files, fullPath);
-
+    private int getUserId(UserDetailsImpl user) {
+        if (user == null || user.user() == null) {
+            throw new UserNotFoundException("User not authenticated");
+        }
+        return user.user().getId();
     }
 
     private ResourceInfoResponse mapToResponse(String objectName, Item item) {

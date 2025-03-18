@@ -1,6 +1,5 @@
 package com.qubb.cloud.minio;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,11 +23,5 @@ public class MinioConfiguration {
                 .endpoint(endpoint)
                 .credentials(accessKey, secretKey)
                 .build();
-    }
-
-    @PostConstruct
-    public void checkConfig() {
-        System.out.println("MinIO Access Key: " + accessKey);
-        System.out.println("MinIO Secret Key: " + secretKey);
     }
 }

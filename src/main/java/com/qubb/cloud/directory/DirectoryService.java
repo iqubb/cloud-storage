@@ -15,9 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -29,14 +26,13 @@ public class DirectoryService {
 
     private final MinioClient minioClient;
     private final MinioService minioService;
-    private final ResourceValidator resourceValidator;
     private final RequestValidator requestValidator;
 
     @Value("${minio.bucket}")
     private String bucketName;
 
     public List<ResourceInfoResponse> getDirectoryContentInfo(String path, UserDetailsImpl userDetails) {
-        requestValidator.validateUserAndPath(userDetails, path);
+        requestValidator.validateRequest(userDetails, path);
         minioService.initializeBucket();
 
         ensureUserRootDirectoryExists(userDetails);
@@ -49,7 +45,7 @@ public class DirectoryService {
     }
 
     public ResourceInfoResponse createEmptyFolder(String path, UserDetailsImpl userDetails) {
-        requestValidator.validateUserAndPath(userDetails, path);
+        requestValidator.validateRequest(userDetails, path);
 
         String fullPath = PathUtils.normalize(PathUtils.buildFullUserPath(getUserId(userDetails), path));
         String parentPath = PathUtils.getParentPath(fullPath);

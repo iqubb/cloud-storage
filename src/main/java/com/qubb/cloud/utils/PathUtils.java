@@ -3,16 +3,6 @@ package com.qubb.cloud.utils;
 import com.qubb.cloud.exceptions.IncorrectPathException;
 
 public class PathUtils {
-    public static void validatePath(String path) {
-        if (path == null || path.isEmpty()) return;
-
-        if (!path.matches("^[\\w\\-._!*'()/@$=:+;, ]+$")) {
-            throw new IncorrectPathException("Invalid characters in path: " + path);
-        }
-        if (path.contains("..") || path.contains("//")) {
-            throw new IncorrectPathException("Invalid path structure: " + path);
-        }
-    }
 
     public static String getResourceName(String resourcePath) {
         if (resourcePath.endsWith("/")) {
