@@ -1,6 +1,7 @@
 package com.qubb.cloud.utils;
 
 import com.qubb.cloud.resource.ResourceInfoResponse;
+import io.minio.StatObjectResponse;
 import io.minio.messages.Item;
 
 public class ResourceResponseBuilder {
@@ -20,14 +21,14 @@ public class ResourceResponseBuilder {
                 .build();
     }
 
-    public static ResourceInfoResponse buildFromObjectName(String objectName, Long size) {
+    public static ResourceInfoResponse buildFromObjectName(String objectName, StatObjectResponse stat) {
         boolean isDirectory = objectName.endsWith("/");
         String name = PathUtils.getResourceName(objectName);
 
         return ResourceInfoResponse.builder()
                 .path(PathUtils.getParentPath(objectName))
                 .name(isDirectory ? name + "/" : name)
-                .size(isDirectory ? null : size)
+                .size(isDirectory ? null : stat.size())
                 .type(isDirectory ? DIRECTORY_TYPE : FILE_TYPE)
                 .build();
     }

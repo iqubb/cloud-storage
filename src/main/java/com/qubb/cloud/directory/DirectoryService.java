@@ -31,7 +31,11 @@ public class DirectoryService {
         if (!minioService.isDirectoryExists(fullPath)) {
             throw new ResourceNotFoundException("Directory not found: " + fullPath);
         }
-        return listDirectoryContents(fullPath);
+        return minioService.listObjects(fullPath)
+                .filter(item -> !item.objectName().equals(fullPath))
+                .map(ResourceResponseBuilder::buildFromItem)
+                .distinct()
+                .toList();
     }
 
     public ResourceInfoResponse createEmptyFolder(String path, UserDetailsImpl userDetails) {
@@ -47,16 +51,7 @@ public class DirectoryService {
         }
 
         minioService.createDirectoryObject(fullPath);
-        return ResourceResponseBuilder.buildFromObjectName(fullPath, 0L);
-    }
-
-    private List<ResourceInfoResponse> listDirectoryContents(String directoryPath) {
-        return minioService.listObjects(directoryPath)
-                .filter(item -> !item.objectName().equals(directoryPath))
-                .map(ResourceResponseBuilder::buildFromItem)
-                .distinct()
-                .toList();
-
+        return ResourceResponseBuilder.buildFromObjectName(fullPath, minioService.statObject(fullPath));
     }
 
     private void ensureUserRootDirectoryExists(UserDetailsImpl userDetails) {

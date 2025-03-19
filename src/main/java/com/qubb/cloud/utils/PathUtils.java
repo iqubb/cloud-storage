@@ -1,7 +1,5 @@
 package com.qubb.cloud.utils;
 
-import com.qubb.cloud.exceptions.IncorrectPathException;
-
 public class PathUtils {
 
     public static String getResourceName(String resourcePath) {
@@ -50,12 +48,5 @@ public class PathUtils {
             normalized += "/";
         }
         return normalized;
-    }
-
-    public static String extractEntryName(String objectName, String basePath) {
-                String relativePath = objectName.substring(basePath.length());
-                String[] parts = relativePath.split("/", 2);
-                String entryName = parts[0];
-                return entryName;
     }
 }

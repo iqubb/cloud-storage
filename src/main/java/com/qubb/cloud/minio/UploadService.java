@@ -7,7 +7,6 @@ import com.qubb.cloud.utils.ResourceResponseBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,7 +37,7 @@ public class UploadService {
 
             return List.of(ResourceResponseBuilder.buildFromObjectName(
                     objectName,
-                    file.getSize()
+                    minioService.statObject(objectName)
             ));
         } catch (Exception e) {
             throw new ResourceOperationException("Failed to upload file: " + e.getMessage());

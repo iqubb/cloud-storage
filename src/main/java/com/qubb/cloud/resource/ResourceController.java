@@ -87,7 +87,7 @@ public class ResourceController {
             summary = "Download Resource",
             description = """
             Downloads the specified resource by its full URL-encoded path.
-            If the resource is a file, its binary content is returned with 
+            If the resource is a file, its binary content is returned with
             Content-Type: application/octet-stream. If the resource is a folder,
             a ZIP archive containing its contents is returned.
             """,
@@ -152,7 +152,7 @@ public class ResourceController {
             description = """
             Searches for resources using the given URL-encoded query parameter.
             Returns a JSON array containing the resources that match the query.
-            Each resource includes the path to the parent folder, the resource name, 
+            Each resource includes the path to the parent folder, the resource name,
             the file size (if the resource is a file), and the resource type (FILE or DIRECTORY).
             """,
             responses = {
@@ -181,7 +181,7 @@ public class ResourceController {
             description = """
             Uploads one or more files to the specified target folder.
             The 'path' query parameter defines the folder in which the resources will be stored.
-            If a file's name includes a subdirectory (e.g., 'upload_folder/test.txt'), 
+            If a file's name includes a subdirectory (e.g., 'upload_folder/test.txt'),
             the server creates that subdirectory within the storage folder.
             """,
             responses = {
