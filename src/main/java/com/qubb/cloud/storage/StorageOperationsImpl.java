@@ -1,11 +1,8 @@
 package com.qubb.cloud.storage;
 
-import com.qubb.cloud.minio.DeleteService;
-import com.qubb.cloud.minio.DownloadService;
-import com.qubb.cloud.minio.MinioService;
-import com.qubb.cloud.minio.UploadService;
-import com.qubb.cloud.resource.DownloadResult;
-import com.qubb.cloud.resource.ResourceInfoResponse;
+import com.qubb.cloud.payload.DownloadResponse;
+import com.qubb.cloud.payload.ResourceInfoResponse;
+import io.minio.StatObjectResponse;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +25,7 @@ public class StorageOperationsImpl implements StorageOperations {
     }
 
     @Override
-    public DownloadResult download(String path) {
+    public DownloadResponse download(String path) {
         return downloadService.download(path);
     }
 
@@ -39,11 +36,16 @@ public class StorageOperationsImpl implements StorageOperations {
 
     @Override
     public void copyResource(String source, String target) {
-        minioService.copyResource(source, target);
+        minioService.copyDirectoryContents(source, target);
     }
 
     @Override
     public Stream<Item> recursiveListObjects(String rootPath) {
         return minioService.recursiveListObjects(rootPath);
+    }
+
+    @Override
+    public StatObjectResponse statObject(String path) {
+        return minioService.statObject(path);
     }
 }

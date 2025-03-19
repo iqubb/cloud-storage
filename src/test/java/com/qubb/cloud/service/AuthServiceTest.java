@@ -1,10 +1,9 @@
 package com.qubb.cloud.service;
 
-import com.qubb.cloud.auth.AuthService;
-import com.qubb.cloud.auth.UserCredentials;
-import com.qubb.cloud.user.User;
-import com.qubb.cloud.user.UserRepository;
-import com.qubb.cloud.utils.DataUtil;
+import com.qubb.cloud.payload.UserCredentials;
+import com.qubb.cloud.entity.User;
+import com.qubb.cloud.repository.UserRepository;
+import com.qubb.cloud.util.DataUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
