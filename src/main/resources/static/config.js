@@ -4,7 +4,7 @@ window.APP_CONFIG = {
     githubLink: "https://gist.github.com/zhukovsd/1052313b231bb1eebd5b910990ee1050",
 
     //Имя, которое отображается в хедере
-    mainName: "CLOUD STORAGE",
+    mainName: "CLOUD",
 
     //адрес вашего бэка. если пустой - значит на одном url с таким же портом.
     //если запускаете бэк и фронт через докер compose - тут ставите имя бэка в докер сети
@@ -35,7 +35,7 @@ window.APP_CONFIG = {
 
     //корректный пароль
     validPassword: {
-        minLength: 5,
+        minLength: 6,
         maxLength: 20,
         pattern: "^[a-zA-Z0-9!@#$%^&*(),.?\":{}|<>[\\]/`~+=-_';]*$",
     },
