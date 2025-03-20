@@ -1,16 +1,18 @@
-# Cloud File Storage
+# Cloud Storage
 ## 📑 Table of Contents
 
 - [📝 About the Project](#-about-the-project)
 - [⚙️ Features](#-features)
 - [🛠️ Technologies](#-technologies)
 - [🏃How to run](#-how-to-run)
+- [🤝Contributing](#-contributing)
+- [🙏 Acknowledgments](#-acknowledgments)
 - [👨‍💻 Author](#-author)
 ---
 ## 📝 About the Project
 
-Cloud File Storage is a web application created to practice backend development skills.  
-You can view the technical specifications [here](https://zhukovsd.github.io/java-backend-learning-course/projects/cloud-file-storage/).
+Cloud Storage is a web application created to practice
+backend development skills. You can view the technical specifications [here](https://zhukovsd.github.io/java-backend-learning-course/projects/cloud-file-storage/).
 ---
 ## ⚙️ Features
 
