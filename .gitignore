@@ -1,16 +1,15 @@
 *.class
+*.jar
 
 *.log
+logs/
 
 *.ctxt
 
-*.jar
-*.war
-
 hs_err_pid*
 replay_pid*
+.idea/
 
-.idea
-target
-compose/.env
-logs
+target/
+
+.env

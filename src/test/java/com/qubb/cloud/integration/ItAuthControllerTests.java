@@ -79,6 +79,6 @@ public class ItAuthControllerTests extends AbstractControllerBaseTest{
         result.andExpect(status().isConflict())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status", CoreMatchers.is(409)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message", CoreMatchers.containsString("User " + registerRequest.username() + " already registered")));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.detail", CoreMatchers.containsString("User " + registerRequest.username() + " already registered")));
     }
 }

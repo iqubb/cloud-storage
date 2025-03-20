@@ -1,0 +1,101 @@
+# Cloud File Storage
+## 📑 Table of Contents
+
+- [📝 About the Project](#About-the-project)
+- [⚙️ Features](#Features)
+- [🛠️ Technologies](#Technologies)
+- [🚀 Demo](#Demo)
+- [👨‍💻 Author](#Author)
+---
+## 📝 About the Project
+
+Cloud File Storage is a web application created to practice backend development skills.  
+You can view the technical specifications [here](https://zhukovsd.github.io/java-backend-learning-course/projects/cloud-file-storage/).
+---
+## ⚙️ Features
+
+### 👤 User Management:
+- User registration
+- User authentication
+- Session management
+
+### 📤 File and Folder Operations:
+- File and folder uploads
+- Creating new directories
+- Renaming files and folders
+- Downloading files and folders
+
+### 🔍 Search and Navigation:
+- Searching files and folders by name
+- Folder navigation
+- Viewing folder contents
+
+### 💾 Storage Organization:
+- Isolated user data storage
+- Access to storage content via active sessions
+- Preservation of folder hierarchy
+
+---
+
+## 🛠️ Technologies
+
+[![My Skills](https://skillicons.dev/icons?i=java,spring,postgres,redis,maven,react,docker,git,js,&perline=10)](https://skillicons.dev)
+
+---
+
+## 🏃 How to Run
+
+### Prerequisites
+- **Java 17+**
+- **Maven**
+- **Docker & Docker Compose**
+
+### Steps to Run the Project
+
+1. **Clone the Repository**  
+   Open a terminal and run:
+   ```bash
+   git clone https://github.com/iqubb/cloud-storage.git
+   cd cloud-file-storage
+   ```
+2. **Configure Environment Variables**
+    ```
+    POSTGRES_USER=your_db_user
+    POSTGRES_PASSWORD=your_db_password
+    POSTGRES_DB=your_db_name
+    
+    MINIO_ACCESS_KEY=your_minio_access_key
+    MINIO_SECRET_KEY=your_minio_secret_key
+    MINIO_ROOT_USER=your_minio_root_user
+    MINIO_ROOT_PASSWORD=your_minio_root_password
+    
+    REDIS_PASSWORD=your_redis_password
+    ```
+3. **Build the Spring Boot Application**
+   ```bash
+    mvn clean package
+   ```
+4. **Start the Dependent Services**
+
+    Use Docker Compose to start PostgreSQL, MinIO, and Redis:
+   ```bash
+    docker-compose up -d
+   ```
+
+5. **Run the Spring Boot Application**
+   ```bash
+   java -jar target/app.jar
+   ```
+
+6. **Access the Application**
+
+       http://localhost:8080
+
+7. **Stopping the Application and Services**
+
+    To stop the Docker containers, run:
+   ```bash
+    docker-compose down
+   ```
+## 👨‍💻 Author
+Reach out to me on [telegram](https://t.me/qubby)
