@@ -1,11 +1,11 @@
 # Cloud File Storage
 ## 📑 Table of Contents
 
-- [📝 About the Project](#About-the-project)
-- [⚙️ Features](#Features)
-- [🛠️ Technologies](#Technologies)
-- [🚀 Demo](#Demo)
-- [👨‍💻 Author](#Author)
+- [📝 About the Project](#-about-the-project)
+- [⚙️ Features](#-features)
+- [🛠️ Technologies](#-technologies)
+- [🏃How to run](#-how-to-run)
+- [👨‍💻 Author](#-author)
 ---
 ## 📝 About the Project
 
