@@ -56,7 +56,7 @@ You can view the technical specifications [here](https://zhukovsd.github.io/java
    Open a terminal and run:
    ```bash
    git clone https://github.com/iqubb/cloud-storage.git
-   cd cloud-file-storage
+   cd cloud-storage
    ```
 2. **Configure Environment Variables**
     ```
@@ -97,5 +97,22 @@ You can view the technical specifications [here](https://zhukovsd.github.io/java
    ```bash
     docker-compose down
    ```
+
+## 🤝 Contributing
+
+1. **Fork the project**
+2. **Create a new branch**
+   ```bash
+   git checkout -b feature/new-feature
+   ```
+3. **Commit your changes**
+   ```bash
+   git commit -m 'Add some feature'
+   ```
+4. **Push to the branch**
+   ```bash
+   git push origin feature/new-feature
+   ```
+5. **Open a Pull Request**
 ## 👨‍💻 Author
 Reach out to me on [telegram](https://t.me/qubby)
