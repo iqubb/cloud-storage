@@ -46,7 +46,7 @@ You can view the technical specifications [here](https://zhukovsd.github.io/java
 ## 🏃 How to Run
 
 ### Prerequisites
-- **Java 17+**
+- **Java 21+**
 - **Maven**
 - **Docker & Docker Compose**
 
@@ -58,6 +58,7 @@ You can view the technical specifications [here](https://zhukovsd.github.io/java
    git clone https://github.com/iqubb/cloud-storage.git
    cd cloud-storage
    ```
+   
 2. **Configure Environment Variables**
     ```
     POSTGRES_USER=your_db_user
@@ -71,33 +72,23 @@ You can view the technical specifications [here](https://zhukovsd.github.io/java
     
     REDIS_PASSWORD=your_redis_password
     ```
-3. **Build the Spring Boot Application**
+   
+3. **Run the Spring Boot Application**
    ```bash
-    mvn clean package
+    docker-compose up --build -d
    ```
-4. **Start the Dependent Services**
-
-    Use Docker Compose to start PostgreSQL, MinIO, and Redis:
-   ```bash
-    docker-compose up -d
-   ```
-
-5. **Run the Spring Boot Application**
-   ```bash
-   java -jar target/app.jar
-   ```
-
-6. **Access the Application**
+   
+4. **Access the Application**
 
        http://localhost:8080
 
-7. **Stopping the Application and Services**
+5. **Stopping the Application and Services**
 
     To stop the Docker containers, run:
    ```bash
     docker-compose down
    ```
-
+---
 ## 🤝 Contributing
 
 1. **Fork the project**
@@ -114,5 +105,15 @@ You can view the technical specifications [here](https://zhukovsd.github.io/java
    git push origin feature/new-feature
    ```
 5. **Open a Pull Request**
+
+---
+## 🙏 Acknowledgments
+
+- **[Sergey Zhukov](https://t.me/zhukovsd)
+  for technical requirements.**
+- **[MrShoffen](https://t.me/MrShoffen)
+    for frontend.**
+
+---
 ## 👨‍💻 Author
 Reach out to me on [telegram](https://t.me/qubby)
