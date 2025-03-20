@@ -46,6 +46,25 @@ services:
       - cloud_network
     restart: unless-stopped
 
+  app:
+    build: .
+    container_name: backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_REDIS_HOST: redis_cache
+      MINIO_URL: http://minio:9000
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - minio
+      - redis
+    networks:
+      - cloud_network
+    restart: unless-stopped
+
 volumes:
   user_data:
   files_storage:

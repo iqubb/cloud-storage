@@ -4,7 +4,7 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:redis_cache}
+      host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:redis}
 
@@ -34,7 +34,7 @@ spring:
     baseline-on-migrate: true
 
 minio:
-  endpoint: http://localhost:9000
+  endpoint: http://minio:9000
   access-key: ${MINIO_ACCESS_KEY:minio}
   secret-key: ${MINIO_SECRET_KEY:password}
   bucket: user-files
@@ -45,6 +45,6 @@ server:
 
 logging:
   level:
-    org.springframework.security: DEBUG  # Логи Spring Security
-    org.springframework.web: DEBUG       # Логи HTTP-запросов
-    com.qubb.cloud: DEBUG                # Логи вашего приложения (опционально)
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    com.qubb.cloud: DEBUG
